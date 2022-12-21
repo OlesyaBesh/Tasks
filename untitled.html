@@ -1,45 +1,92 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
 <html>
 <head>
- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-   <title>Мои увлечения и хобби</title>
- <link rel="stylesheet" href="hf.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js">
+</script>
+  <script language="javascript" type="text/javascript">
+    $(function() {
+      var conn = null;
+      function log(msg) {
+        var control = $('#log');
+        control.html(control.html() + msg + '<br/>');
+        control.scrollTop(control.scrollTop() + 1000);
+      }
+      function connect() {
+        disconnect(); // разрываем соединение если функция вызвана по-ошибке
+        var wsUri = (window.location.protocol=='https:'&&'wss://'||'ws://')+window.location.host;
+        conn = new WebSocket(wsUri); //открываем соединение
+        log('Connecting...');
+        conn.onopen = function() {
+          log('Connected.');
+          update_ui();
+        };
+        conn.onmessage = function(e) {
+          log('Received: ' + e.data);
+        };
+        conn.onclose = function() {
+          log('Disconnected.');
+          conn = null;
+          update_ui();
+        };
+      }
+      function disconnect() {
+        if (conn != null) {
+          log('Disconnecting...');
+          conn.close();
+          conn = null;
+          update_ui();
+        }
+      }
+      function update_ui() {
+        if (conn == null) {
+          $('#status').text('disconnected');
+          $('#connect').html('Connect');
+        } else {
+          $('#status').text('connected (' + conn.protocol + ')');
+          $('#connect').html('Disconnect');
+        }
+      }
+      $('#connect').click(function() {
+        if (conn == null) {
+          connect();
+        } else {
+          disconnect();
+        }
+        update_ui();
+        return false;
+      });
+      $('#send').click(function() {
+        var text = $('#text').val();
+        log('Sending: ' + text);
+        conn.send(text);
+        $('#text').val('').focus();
+        return false;
+      });
+      $('#text').keyup(function(e) {
+        if (e.keyCode === 13) {
+          $('#send').click();
+          return false;
+        }
+      });
+    });
+</script>
 </head>
-  
 <body>
-
-<div class="header">
-        <div class="inner-header">
-            <div class="logo-container">
-                <h1>Моё хобби</h1>
-            </div>
-         
-            <ul class="navigation">
-                <a href="#"><li>Титульная</li></a>
-                <a href="about.html"><li>Обо мне</li></a>
-                <a href="contacts.html"><li>Обратная связь</li></a>
-            </ul>
-        </div>
+<h3>Chat!</h3>
+<div>
+  <button id="connect">Connect</button>&nbsp;|&nbsp;Status:
+  <span id="status">disconnected</span>
 </div>
-    
-    
-<div class="content">
-
-  <h1> Программирование</h1>
-  <hr>
-  <img class="image" src="image.png" alt="Мой дом - моя крепость">
-    
-  <p class="text">У меня очень много увлечений. Я люблю читать, кататься на велосипеде, и мне очень нравится рисовать. Но мое самое главное хобби – это программирование.</p>
-  <p class="text">Мне всегда нравились компьютеры и техника. В школе я начала ходить на дополнительные занятия по программированию, там мы создавали свои первые несложные программы. За урок я успевала придумать что-то свое: добавить новое условие, сделать алгоритм более заковыристым… Мне это, действительно, нравится, ведь можно создать что-то свое, особенное!</p> 
-  <p class="text">В университете я изучала экономику и использовала свои знания для прогнозирования курса валюты с помощью искуственного интеллекта. Получившаяся модель была точнее любой другой! </p>
-  <p class="text">Сейчас я изучаю бэкэнд и фронтенд - разработку на курсе Скиллфэктори. </p>
-      
+<div id="log"
+     style="width:20em;height:15em;overflow:auto;border:1px solid black">
 </div>
+<form id="chatform" onsubmit="return false;">
+  <input id="text" type="text" />
+  <input id="send" type="button" value="Send" />
+</form>
 </body>
 </html>
-
-
-
-
 
 
 
